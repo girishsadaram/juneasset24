@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Asset Receipt Form</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .checkbox-group { margin: 10px 0; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .required:after { content: " *"; color: red; }
+
+        #signature-preview { 
+            max-width: 300px; 
+            max-height: 150px;
+            margin-top: 10px;
+            display: none;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .signature-controls { margin-top: 10px; }
+        .asset-type-container { margin-left: 20px; margin-top: 5px; margin-bottom: 15px; display: none; }
+        .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo img {
+            height: 60px;
+        }
+    </style>
+
+    <script>
+        function toggleHeadsetModel() {
+            const headsetCheckbox = document.getElementById('headset');
+            const headsetModelDiv = document.getElementById('headset-model');
+            headsetModelDiv.style.display = headsetCheckbox.checked ? 'block' : 'none';
+            document.getElementById('headset_model').required = headsetCheckbox.checked;
+        }
+
+        function toggleAssetType(assetName) {
+            const assetCheckbox = document.getElementById(assetName);
+            const assetTypeDiv = document.getElementById(`${assetName}-type`);
+            if (assetTypeDiv) assetTypeDiv.style.display = assetCheckbox.checked ? 'block' : 'none';
+            const selector = document.getElementById(`${assetName}_type`);
+            if (selector) selector.required = assetCheckbox.checked;
+
+            if (assetName === 'monitor') {
+                document.getElementById('monitor-serial-container').style.display = assetCheckbox.checked ? 'block' : 'none';
+            }
+            if (assetName === 'ups') {
+                document.getElementById('ups-serial-container').style.display = assetCheckbox.checked ? 'block' : 'none';
+            }
+        }
+
+        function previewSignature(event) {
+            const input = event.target;
+            const preview = document.getElementById('signature-preview');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        window.onload = function() {
+            toggleHeadsetModel();
+            toggleAssetType('headset');
+            toggleAssetType('ups');
+            toggleAssetType('monitor');
+        };
+    </script>
+</head>
+
+<body>
+    <div class="logo">
+        <img src="/static/logo.jpg" alt="Company Logo">
+    </div>
+    <h1>Asset Receipt Form</h1>
+    <form method="POST" action="/" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="name" class="required">Name:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+
+        <div class="form-group">
+            <label for="emp_id" class="required">Employee ID:</label>
+            <input type="text" id="emp_id" name="emp_id" required>
+        </div>
+
+        <div class="form-group">
+            <label for="department" class="required">Department:</label>
+            <select id="department" name="department" required>
+                <option value="">Select Department</option>
+                {% for dept in departments %}
+                    <option value="{{ dept }}">{{ dept }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label class="required">Assets Received:</label>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="headset" name="assets" value="Headset" onchange="toggleHeadsetModel(); toggleAssetType('headset')">
+                <label for="headset">Headset</label>
+            </div>
+            <div id="headset-type" class="asset-type-container">
+                <label for="headset_type">Headset Type:</label>
+                <select id="headset_type" name="headset_type">
+                    <option value="New">New</option>
+                    <option value="Replacement">Replacement</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="keyboard" name="assets" value="Keyboard">
+                <label for="keyboard">Keyboard</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="mouse" name="assets" value="Mouse">
+                <label for="mouse">Mouse</label>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="monitor" name="assets" value="Monitor" onchange="toggleAssetType('monitor')">
+                <label for="monitor">Monitor</label>
+            </div>
+            <div id="monitor-type" class="asset-type-container">
+                <label for="monitor_type">Monitor Type:</label>
+                <select id="monitor_type" name="monitor_type">
+                    <option value="New">New</option>
+                    <option value="Replacement">Replacement</option>
+                </select>
+            </div>
+
+            <div class="checkbox-group">
+                <input type="checkbox" id="ups" name="assets" value="UPS" onchange="toggleAssetType('ups')">
+                <label for="ups">UPS</label>
+            </div>
+            <div id="ups-type" class="asset-type-container">
+                <label for="ups_type">UPS Type:</label>
+                <select id="ups_type" name="ups_type">
+                    <option value="New">New</option>
+                    <option value="Replacement">Replacement</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="monitor-serial-container" class="form-group" style="display:none;">
+            <label for="monitor_sl_no">Monitor Serial Number:</label>
+            <input type="text" id="monitor_sl_no" name="monitor_sl_no">
+        </div>
+
+        <div id="ups-serial-container" class="form-group" style="display:none;">
+            <label for="ups_sl_no">UPS Serial Number:</label>
+            <input type="text" id="ups_sl_no" name="ups_sl_no">
+        </div>
+
+        <div id="headset-model" style="display:none; margin-bottom:15px;">
+            <label for="headset_model" class="required">Headset Model:</label>
+            <select id="headset_model" name="headset_model">
+                <option value="">Select Model</option>
+                {% for model in headset_models %}
+                    <option value="{{ model }}">{{ model }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="signature" class="required">Signature Photo:</label>
+            <input type="file" id="signature" name="signature" accept="image/*" onchange="previewSignature(event)" required>
+            <p><small>Upload a photo of your signature (JPG, PNG, GIF)</small></p>
+            <img id="signature-preview" src="#" alt="Signature Preview">
+            <input type="hidden" name="signature_text" value="Signature attached">
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
